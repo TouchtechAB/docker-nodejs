@@ -17,18 +17,44 @@ RUN set -ex \
 
 ENV NPM_CONFIG_LOGLEVEL info
 ENV NODE_VERSION 5.6.0
+ENV LIBVIPS_VERSION_MAJOR 8
+ENV LIBVIPS_VERSION_MINOR 2
+ENV LIBVIPS_VERSION_PATCH 2
+ENV LIBVIPS_VERSION $LIBVIPS_VERSION_MAJOR.$LIBVIPS_VERSION_MINOR.$LIBVIPS_VERSION_PATCH
 
-RUN buildDeps='xz-utils' \
+WORKDIR /tmp/docker
+
+RUN buildDeps='xz-utils pkg-config lsb-release automake build-essential git' \
     && set -x \
-    && apt-get update && apt-get install -y $buildDeps pkg-config lsb-release --no-install-recommends \
-    && curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash - \
-    && rm -rf /var/lib/apt/lists/* \
+    && apt-get update && apt-get install -y --no-install-recommends $buildDeps\
+      curl \
+    	libglib2.0-dev \
+    	gettext \
+    	libxml2-dev \
+    	imagemagick \
+    	libmagick++-dev \
+    	libpng12-dev \
+    	libexif-dev \
+    	libgsf-1-dev \
+    	libjpeg-dev \
+    	liblcms2-dev \
+    	libmagickcore-dev \
+    	fftw3-dev \
+    && curl -O http://www.vips.ecs.soton.ac.uk/supported/$LIBVIPS_VERSION_MAJOR.$LIBVIPS_VERSION_MINOR/vips-$LIBVIPS_VERSION.tar.gz \
+    && tar zvxf vips-$LIBVIPS_VERSION.tar.gz \
+    && cd vips-$LIBVIPS_VERSION \
+    && ./configure --enable-debug=no --without-python --without-orc $1 \
+    && make \
+    && make install \
+    && ldconfig \
     && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
     && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \
     && gpg --verify SHASUMS256.txt.asc \
     && grep " node-v$NODE_VERSION-linux-x64.tar.xz\$" SHASUMS256.txt.asc | sha256sum -c - \
     && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
     && rm "node-v$NODE_VERSION-linux-x64.tar.xz" SHASUMS256.txt.asc \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/docker/* \
     && apt-get purge -y --auto-remove $buildDeps
 
 CMD [ "node" ]
