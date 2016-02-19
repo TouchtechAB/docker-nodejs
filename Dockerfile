@@ -20,8 +20,8 @@ ENV NODE_VERSION 5.6.0
 
 RUN buildDeps='xz-utils' \
     && set -x \
-    && apt-get update && apt-get install -y $buildDeps --no-install-recommends \
-    && curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | sudo bash - \
+    && apt-get update && apt-get install -y $buildDeps pkg-config lsb-release --no-install-recommends \
+    && curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash - \
     && rm -rf /var/lib/apt/lists/* \
     && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
     && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \
